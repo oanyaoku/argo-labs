@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    supported-by: sre@example.com
+  labels:
+    app: vote
+    project: instavote
+    tier: front
+  name: vote
+  namespace: staging
+spec:
+  ports:
+  - name: "80"
+    nodePort: 30000
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: vote
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    supported-by: sre@example.com
+  labels:
+    app: vote
+    project: instavote
+    tier: front
+  name: vote
+  namespace: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vote
+  strategy:
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        supported-by: sre@example.com
+      labels:
+        app: vote
+        tier: front
+    spec:
+      containers:
+      - image: schoolofdevops/vote:v1
+        imagePullPolicy: Always
+        name: vote
+        resources:
+          limits:
+            cpu: 250m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
